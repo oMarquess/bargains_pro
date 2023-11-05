@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as cheerio from 'cheerio'
-import { extractCurrency, extractPrice } from "../utils";
+import { extractCurrency, extractDescription, extractPrice } from "../utils";
 export async function scrapeAmazonProduct(url:string) {
     if(!url) return;
     //Bright Data Config
@@ -55,16 +55,21 @@ export async function scrapeAmazonProduct(url:string) {
         const imageUrls = Object.keys(JSON.parse(images));
         //console.log({title, currentPrice, originalPrice, imageUrls, currency, discountRate})
         //construct data object with scrapped information
+        const description = extractDescription($)
         const data = {
             url,
             currency: currency || '$',
             image: imageUrls[0],
             title,
-            currentPrice: Number(originalPrice),
-            discountRate: Number(discountRate),
+            currentPrice: Number(currentPrice) || Number(originalPrice),
+            discountRate: Number(discountRate) || Number(currentPrice),
             reviewsCount:100,
             stars:4.6,
             isOutOfStock: outOfStock,
+            description,
+            lowestPrice: Number(currentPrice)|| Number(originalPrice),
+            highestPrice: Number(originalPrice)|| Number(currentPrice),
+            average: Number(currentPrice)||Number(originalPrice)
             
 
 
@@ -72,6 +77,7 @@ export async function scrapeAmazonProduct(url:string) {
 
 
         }
+        return data
 
     }catch(error:any){
         throw new Error('Failed to scrape product: ${error.message}')
